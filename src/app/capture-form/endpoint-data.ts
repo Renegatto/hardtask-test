@@ -15,9 +15,9 @@ export type PublishedTask = {
   foo: number,
 }
 
-export type Result<E,A> =
-  | { success: true, value: A }
-  | { success: false, failure: E }
+export type Either<E,A> =
+  | { isRight: true, right: A }
+  | { isRight: false, left: E }
 
 const ENDPOINT_URL = "https://deadlinetaskbot.productlove.ru/api/v1/tasks/client/newhardtask"
 
@@ -30,7 +30,7 @@ export const makeQuery = (toPublish: Task): string =>
     .join('&')
   }`
 
-export const publishTask = async (task: Task): Promise<Result<Error,PublishedTask>> => {
+export const publishTask = async (task: Task): Promise<Either<Error,PublishedTask>> => {
   const outcome = await fetch(makeQuery(task))
   var result: Uint8Array[] = [] //new Uint8Array()
   while (true) {
@@ -43,6 +43,6 @@ export const publishTask = async (task: Task): Promise<Result<Error,PublishedTas
   return parsePublishedTask(JSON.parse(fullResponseBody))
 }
 
-const parsePublishedTask = (task: unknown): Result<Error,PublishedTask> => {
+const parsePublishedTask = (task: unknown): Either<Error,PublishedTask> => {
   throw new Error('Not implemented')
 }
