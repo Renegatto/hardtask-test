@@ -52,16 +52,16 @@ const ENDPOINT_URL = "https://deadlinetaskbot.productlove.ru/api/v1/tasks/client
 
 type TaskQueryParams = { [key in keyof Task]: string }
 const taskQueryParams = (task: Task): TaskQueryParams => ({
-  token: encodeURIComponent(task.token),
-  title: encodeURIComponent(task.title),
-  description: encodeURIComponent(task.description),
-  tags: encodeURIComponent(task.tags.join(',')),
+  token: task.token,
+  title: task.title,
+  description: task.description,
+  tags: task.tags.join(','),
   budget_from: task.budget_from.toString(),
   budget_to: task.budget_to.toString(),
   deadline: task.deadline.toString(),
   ...task.reminds ? { reminds: Math.round(task.reminds).toString() } : {},
   all_auto_responses: task.all_auto_responses.toString(),
-  rules: encodeURIComponent(JSON.stringify(task.rules))
+  rules: JSON.stringify(task.rules),
 })
 
 export const makeQuery = (toPublish: Task): string =>
@@ -69,7 +69,7 @@ export const makeQuery = (toPublish: Task): string =>
     ENDPOINT_URL
   }?${
     Object.entries(taskQueryParams(toPublish))
-    .map(([queryParam, value]) => `${queryParam}=${value}`)
+    .map(([queryParam, value]) => `${queryParam}=${encodeURIComponent(value)}`)
     .join('&')
   }`
 
