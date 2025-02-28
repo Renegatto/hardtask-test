@@ -17,11 +17,31 @@ export type Task = {
     deadline_days: number,
   },
 }
-type TaskQueryParams = { [key in keyof Task]: string }
 
 export type PublishedTask = {
   ok: string,
-  task: Task & { rules: { task_id: number } },
+  task: {
+    ok: string,
+    task: {
+      title: string,
+      description: string,
+      tags: string[],
+      budget_from: number,
+      budget_to: number,
+      deadline_days: number,
+      number_of_reminders: number,
+      private_content: null,
+      is_hard: boolean,
+      all_auto_responses: number,
+      rules: {
+        budget_from: number,
+        budget_to: number,
+        deadline_days: number,
+        qty_freelancers: number,
+        task_id: number,
+      },
+    },
+  },
 }
 
 export type Either<E,A> =
@@ -30,6 +50,7 @@ export type Either<E,A> =
 
 const ENDPOINT_URL = "https://deadlinetaskbot.productlove.ru/api/v1/tasks/client/newhardtask"
 
+type TaskQueryParams = { [key in keyof Task]: string }
 const taskQueryParams = (task: Task): TaskQueryParams => ({
   token: encodeURIComponent(task.token),
   title: encodeURIComponent(task.title),
@@ -54,7 +75,7 @@ export const makeQuery = (toPublish: Task): string =>
 
 export const publishTask = async (task: Task): Promise<Either<Error,PublishedTask>> => {
   const outcome = await fetch(makeQuery(task))
-  var result: Uint8Array[] = [] //new Uint8Array()
+  var result: Uint8Array[] = []
   while (true) {
     const chunk = await outcome.body?.getReader()?.read()
     if (chunk?.value) result.push(chunk.value)
