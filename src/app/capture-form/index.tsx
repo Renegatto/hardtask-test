@@ -6,7 +6,7 @@ import { Either } from "./utils";
 
 export type CaptureFormProps = {
   publishTask: (task: Task) => Promise<Either<FailedToPublish,PublishedTask>>,
-  Form: FC<{ onSubmit: (submitted: Task) => void, }>
+  Form: FC<{ onSubmit: (submitted: Task) => void, isTransition: boolean }>
 }
 type Option<A> = Either<null,A>
 
@@ -16,10 +16,8 @@ export const CaptureForm: FC<CaptureFormProps> = ({publishTask, Form}) => {
       isRight: false,
       left: null,
     })
-  const [publishing,publish] = useTransition(
-    
-  )
-  const handleSubmit = useCallback(async (task: Task) => {
+  const [isTransition,startTransition] = useTransition()
+  const handleSubmit = useCallback(async (task: Task) => startTransition(async () => {
     console.log('publishing',task)
     const published = await publishTask(task) 
     const newPublished: Option<Either<FailedToPublish,PublishedTask>> =
@@ -28,13 +26,13 @@ export const CaptureForm: FC<CaptureFormProps> = ({publishTask, Form}) => {
       console.error(published.left)
     setPublished(newPublished)
     console.log('new',newPublished)
-  },[])
+  }),[])
   return <>
     Capture form
     <Flex vertical={true}>
-      <Form onSubmit={handleSubmit}/>
+      <Form onSubmit={handleSubmit} isTransition={isTransition} />
       { published.isRight
-        ? <SubmissionResult result={published.right} />
+        ? <SubmissionResult result={published.right}/>
         : <></>
       }
     </Flex>

@@ -1,15 +1,16 @@
 import { FC, useEffect } from "react";
 import { Task } from "./endpoint-data";
-import { Button, Checkbox, Flex, Form, Input, InputNumber } from "antd";
+import { Button, Checkbox, Flex, Form, Input, InputNumber, Spin } from "antd";
 import { z } from "zod";
 import { TaskTags } from "./tags";
 
 export type TaskFormProps = {
   onSubmit: (submitted: Task) => void,
+  isTransition: boolean,
 }
 const UUID_PLACEHOLDER = "317ad1fc-e0a9-11ef-a978-0242ac120007"
 
-export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
+export const TaskForm: FC<TaskFormProps> = ({onSubmit,isTransition}) => {
   const [form] = Form.useForm()
   useEffect(() => {
     form.setFieldValue('tags',[])
@@ -21,7 +22,7 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
     console.log(task)
     onSubmit(task)
   }
-  return <Form form={form} onFinish={handleSubmit}>
+  return <Form form={form} onFinish={handleSubmit} disabled={isTransition}>
     <Form.Item
       name={formFields.token}
       label="Token"
@@ -191,7 +192,9 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
     </Form.Item>
     <Form.Item label={null}>
       <Button type="primary" htmlType="submit">
-        Publish task
+        Publish task {
+          isTransition ? <Spin></Spin> : <></>
+        }
       </Button>
     </Form.Item>
   </Form>
