@@ -4,47 +4,53 @@ import { FailedToPublish, PublishedTask, Task } from "../endpoint-data";
 import { Alert, Flex } from "antd";
 import { Either } from "../../utils";
 import { SubmittedForm } from "./task-form";
+import { useReset } from "@/app/hooks";
 
 export type NewHardtaskProps = {
   publishTask: (task: Task) => Promise<Either<FailedToPublish, PublishedTask>>;
   TaskForm(
+    key: number,
     onSubmit: (submitted: Task) => void,
     isTransition: boolean,
+    token: string | undefined,
   ): ReactElement;
 };
 type Option<A> = Either<null, A>;
+
+const Some = <A,>(a: A): Option<A> => Either.Right(a);
 
 export const NewHardtask: FC<NewHardtaskProps> = ({
   publishTask,
   TaskForm,
 }) => {
+  const [formKey, resetForm] = useReset();
   const [published, setPublished] = useState<
-    Option<Either<FailedToPublish, PublishedTask>>
-  >({
-    isRight: false,
-    left: null,
-  });
+    Option<{ task: Task; result: Either<FailedToPublish, PublishedTask> }>
+  >(Either.Left(null));
   const [isTransition, startTransition] = useTransition();
   const handleSubmit = useCallback(
     async (task: Task) =>
       startTransition(async () => {
         const published = await publishTask(task);
-        const newPublished: Option<Either<FailedToPublish, PublishedTask>> = {
-          isRight: true,
-          right: published,
-        };
+        const newPublished = Some({ task, result: published });
         if (!published.isRight) console.error(published.left);
+        resetForm();
         setPublished(newPublished);
       }),
-    [publishTask],
+    [publishTask, resetForm],
   );
   return (
     <>
       Capture form
       <Flex vertical={true}>
-        {TaskForm(handleSubmit, isTransition)}
+        {TaskForm(
+          formKey,
+          handleSubmit,
+          isTransition,
+          (published.isRight && published.right.task.token) || undefined,
+        )}
         {published.isRight ? (
-          <SubmissionResult result={published.right} />
+          <SubmissionResult result={published.right.result} />
         ) : (
           <></>
         )}

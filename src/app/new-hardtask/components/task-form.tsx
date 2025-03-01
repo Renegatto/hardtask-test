@@ -7,6 +7,7 @@ import { validateViaZod } from "@/app/utils";
 export type TaskFormProps = {
   onSubmit: (submitted: SubmittedForm) => void;
   isTransition: boolean;
+  token: string | undefined;
 };
 
 export type SubmittedForm = {
@@ -24,7 +25,11 @@ export type SubmittedForm = {
 
 const UUID_PLACEHOLDER = "317ad1fc-e0a9-11ef-a978-0242ac120007";
 
-export const TaskForm: FC<TaskFormProps> = ({ onSubmit, isTransition }) => {
+export const TaskForm: FC<TaskFormProps> = ({
+  onSubmit,
+  isTransition,
+  token,
+}) => {
   const [form] = Form.useForm();
   useEffect(() => {
     form.setFieldValue("tags", []);
@@ -41,6 +46,8 @@ export const TaskForm: FC<TaskFormProps> = ({ onSubmit, isTransition }) => {
         validateDebounce={100}
         name={formFields.token}
         label="API token"
+        preserve
+        initialValue={token}
         tooltip="UUID v4 token that provides an access to the API"
         rules={[
           { required: true, message: "Please specify API token" },

@@ -13,10 +13,12 @@ export default function Home() {
       <main className={styles["main"]}>
         <NewHardtask
           publishTask={publishTask}
-          TaskForm={(onSubmit, isTransition) => (
+          TaskForm={(key, onSubmit, isTransition, token) => (
             <TaskForm
+              key={key}
               isTransition={isTransition}
               onSubmit={(form) => onSubmit(submittedFormToTask(form))}
+              token={token}
             />
           )}
         />
