@@ -1,5 +1,5 @@
 "use client"
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback, useState, useTransition } from "react";
 import { FailedToPublish, PublishedTask, Task } from "./endpoint-data";
 import { Alert, Flex } from "antd";
 import { Either } from "./utils";
@@ -16,6 +16,9 @@ export const CaptureForm: FC<CaptureFormProps> = ({publishTask, Form}) => {
       isRight: false,
       left: null,
     })
+  const [publishing,publish] = useTransition(
+    
+  )
   const handleSubmit = useCallback(async (task: Task) => {
     console.log('publishing',task)
     const published = await publishTask(task) 

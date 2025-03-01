@@ -26,7 +26,12 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
       name={formFields.token}
       label="Token"
       tooltip="UUID v4 token of the task"
-      rules={[{required: true, message: 'Please specify task ID'}]}
+      rules={[
+        {required: true, message: 'Please specify task ID'},
+        { validator: (_,value) =>
+          validateViaZod(z.string().uuid(),'Invalid UUID')(value)
+        },
+      ]}
     >
       <Input
         placeholder={UUID_PLACEHOLDER}
@@ -37,7 +42,12 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
       name={formFields.title}
       label="Title"
       tooltip="Hardtask title"
-      rules={[{required: true, message: 'Please specify the task title'}]}
+      rules={[
+        {required: true, message: 'Please specify the task title'},
+        { validator: (_,value) =>
+          validateViaZod(z.string(),'Invalid string')(value)
+        },
+      ]}
     >
       <Input
         placeholder='A title'
@@ -47,7 +57,12 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
       name={formFields.description}
       label="Description"
       tooltip="Detailed description of the task."
-      rules={[{required: true, message: 'Please specify the task description'}]}
+      rules={[
+        {required: true, message: 'Please specify the task description'},
+        { validator: (_,value) =>
+          validateViaZod(z.string(),'Invalid string')(value)
+        },
+      ]}
     >
       <Input
         placeholder='A hardtask description.'
@@ -55,6 +70,11 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
     </Form.Item>
     <Form.Item
       name={formFields.tags}
+      rules={[
+        { validator: (_,value) =>
+          validateViaZod(z.array(z.string()),'Invalid tags')(value)
+        },
+      ]}
     >
       <TaskTags
         setValues={tags =>
@@ -65,7 +85,14 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
     <Flex>
       <Form.Item
         name={formFields.budgetFrom}
-        rules={[{required: true, message: 'Please specify the minimal budget'}]}
+        rules={[
+          {required: true, message: 'Please specify the minimal budget'},
+          { validator: (_,value) => 
+            validateViaZod(
+              z.number().nonnegative(),'Invalid nonnegative number'
+            )(value)
+          },
+        ]}
       >
         <InputNumber
           addonBefore={<div style={{width: `3ch`}}>from</div>}
@@ -81,11 +108,17 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
         rules={[{
           required: true,
           message: 'Please specify the maximal budget',
-        }, {
-          min: minBudget || 0,
-          type: 'number',
-          message: 'Max budget can not be less than min budget'
-        }]}
+        },
+        ({getFieldValue}) => ({
+          validator: async (_,value) => {
+            await validateViaZod(
+              z.number().nonnegative(),'Invalid nonnegative number'
+            )(value)
+            if (value <= getFieldValue(formFields.budgetFrom))
+              await Promise.reject('Max budget can not be less than min budget')
+          }
+        })
+      ]}
       >
         <InputNumber
           addonBefore={<div style={{width: `3ch`}}>to</div>}
@@ -101,7 +134,14 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
       name={formFields.deadlineDays}
       label='Deadline'
       tooltip='Deadline in days.'
-      rules={[{required: true, message: 'Please specify the task deadline'}]}
+      rules={[
+        {required: true, message: 'Please specify the task deadline'},
+        { validator: (_,value) => 
+          validateViaZod(
+            z.number().positive(),'Invalid positive number'
+          )(value)
+        },
+      ]}
     >
       <InputNumber min={1} placeholder='3' addonAfter={<>days</>} />
     </Form.Item>
@@ -110,13 +150,27 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
       label='Reminds'
       initialValue={3}
       tooltip='How many times to remind the applicant about the deadline.'
+      rules={[
+        { validator: (_,value) => 
+          validateViaZod(
+            z.number().nonnegative(),'Invalid non-negative number'
+          )(value)
+        },
+      ]}
     >
-      <InputNumber min={0}  addonAfter='times' />
+      <InputNumber min={0} addonAfter='times' />
     </Form.Item>
     <Form.Item
       name={formFields.allAutoResponses}
       label='Auto-response'
       tooltip='Whether to automatically response to freelancers or not.'
+      rules={[
+        { validator: (_,value) => 
+          validateViaZod(
+            z.boolean(),'Invalid logical value'
+          )(value)
+        },
+      ]}
     >
       <Checkbox checked={false}>Automatically respond to freelancers</Checkbox>
     </Form.Item>
@@ -125,6 +179,13 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
       label='Workload'
       initialValue={1}
       tooltip='How many freelancers needed to get the work done.'
+      rules={[
+        { validator: (_,value) => 
+          validateViaZod(
+            z.number().positive(),'Invalid positive value'
+          )(value)
+        },
+      ]}
     >
       <InputNumber min={1} addonAfter='freelancers required' />
     </Form.Item>
@@ -148,7 +209,18 @@ const formSchema = z.object({
   allAutoResponses: z.boolean().optional(),
   freelancers: z.number().positive(),
 })
-type SubmittedForm = z.infer<typeof formSchema>
+type SubmittedForm = {
+  title: string;
+  description: string;
+  tags: string[];
+  token: string;
+  reminds: number;
+  budgetFrom: number;
+  budgetTo: number;
+  deadlineDays: number;
+  freelancers: number;
+  allAutoResponses?: boolean | undefined;
+}
 const formFields: { [key in keyof Required<SubmittedForm>]: key } = ({
   token: "token",
   title: "title",
@@ -176,3 +248,11 @@ const formToTask = (submitted: SubmittedForm): Task => ({
   reminds: submitted.reminds,
   all_auto_responses: submitted.allAutoResponses,
 })
+
+const validateViaZod = <A,>(schema: z.Schema<A>, errorMessage: string) =>
+  (value: any): Promise<void> =>
+  schema.safeParseAsync(value).then(result =>
+      result.success
+        ? Promise.resolve()
+        : Promise.reject(errorMessage))
+  
