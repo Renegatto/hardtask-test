@@ -1,13 +1,27 @@
 import { FC, useEffect } from "react";
-import { Task } from "../endpoint-data";
 import { Button, Flex, Form, Input, InputNumber, Spin } from "antd";
 import { z } from "zod";
 import { TaskTags } from "./task-tags";
+import { validateViaZod } from "@/app/utils";
 
 export type TaskFormProps = {
-  onSubmit: (submitted: Task) => void,
+  onSubmit: (submitted: SubmittedForm) => void,
   isTransition: boolean,
 }
+
+export type SubmittedForm = {
+  title: string;
+  description: string;
+  tags: string[];
+  token: string;
+  reminds: number;
+  budgetFrom: number;
+  budgetTo: number;
+  deadlineDays: number;
+  freelancers: number;
+  allAutoResponses?: boolean | undefined;
+}
+
 const UUID_PLACEHOLDER = "317ad1fc-e0a9-11ef-a978-0242ac120007"
 
 export const TaskForm: FC<TaskFormProps> = ({onSubmit,isTransition}) => {
@@ -15,10 +29,8 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit,isTransition}) => {
   useEffect(() => {
     form.setFieldValue('tags',[])
   },[form])
-  const handleSubmit = (form: unknown): void => {
-    const task = formToTask(formSchema.parse(form))
-    onSubmit(task)
-  }
+  const handleSubmit = (submittedForm: unknown): void =>
+    onSubmit(formSchema.parse(submittedForm))
   return <Form form={form} onFinish={handleSubmit} disabled={isTransition}>
     <Form.Item
       name={formFields.token}
@@ -212,18 +224,7 @@ const formSchema = z.object({
   allAutoResponses: z.boolean().optional(),
   freelancers: z.number().positive(),
 })
-type SubmittedForm = {
-  title: string;
-  description: string;
-  tags: string[];
-  token: string;
-  reminds: number;
-  budgetFrom: number;
-  budgetTo: number;
-  deadlineDays: number;
-  freelancers: number;
-  allAutoResponses?: boolean | undefined;
-}
+
 const formFields: { [key in keyof Required<SubmittedForm>]: key } = ({
   token: "token",
   title: "title",
@@ -236,29 +237,3 @@ const formFields: { [key in keyof Required<SubmittedForm>]: key } = ({
   allAutoResponses: "allAutoResponses",
   freelancers: "freelancers",
 })
-
-const formToTask = (submitted: SubmittedForm): Task => ({
-  token: submitted.token,
-  title: submitted.title,
-  description: submitted.description,
-  tags: submitted.tags,
-  budget_from: submitted.budgetFrom,
-  budget_to: submitted.budgetTo,
-  deadline: submitted.deadlineDays,
-  rules: {
-      budget_from: submitted.budgetFrom,
-      budget_to: submitted.budgetTo,
-      qty_freelancers: submitted.freelancers,
-      deadline_days: submitted.deadlineDays,
-  },
-  reminds: submitted.reminds,
-  all_auto_responses: submitted.allAutoResponses,
-})
-
-const validateViaZod = <A,>(schema: z.Schema<A>, errorMessage: string) =>
-  (value: unknown): Promise<void> =>
-  schema.safeParseAsync(value).then(result =>
-      result.success
-        ? Promise.resolve()
-        : Promise.reject(errorMessage))
-  

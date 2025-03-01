@@ -1,12 +1,16 @@
 "use client"
-import { FC, useCallback, useState, useTransition } from "react";
+import { FC, ReactElement, useCallback, useState, useTransition } from "react";
 import { FailedToPublish, PublishedTask, Task } from "../endpoint-data";
 import { Alert, Flex } from "antd";
 import { Either } from "../../utils";
+import { SubmittedForm } from "./task-form";
 
 export type NewHardtaskProps = {
   publishTask: (task: Task) => Promise<Either<FailedToPublish,PublishedTask>>,
-  TaskForm: FC<{ onSubmit: (submitted: Task) => void, isTransition: boolean }>
+  TaskForm(
+    onSubmit: (submitted: Task) => void,
+    isTransition: boolean,
+  ): ReactElement
 }
 type Option<A> = Either<null,A>
 
@@ -28,7 +32,7 @@ export const NewHardtask: FC<NewHardtaskProps> = ({publishTask, TaskForm}) => {
   return <>
     Capture form
     <Flex vertical={true}>
-      <TaskForm onSubmit={handleSubmit} isTransition={isTransition} />
+      { TaskForm(handleSubmit,isTransition) }
       { published.isRight
         ? <SubmissionResult result={published.right}/>
         : <></>
@@ -56,3 +60,21 @@ const SubmissionResult: FC<{
     }
   </>
 }
+
+export const submittedFormToTask = (submitted: SubmittedForm): Task => ({
+  token: submitted.token,
+  title: submitted.title,
+  description: submitted.description,
+  tags: submitted.tags,
+  budget_from: submitted.budgetFrom,
+  budget_to: submitted.budgetTo,
+  deadline: submitted.deadlineDays,
+  rules: {
+      budget_from: submitted.budgetFrom,
+      budget_to: submitted.budgetTo,
+      qty_freelancers: submitted.freelancers,
+      deadline_days: submitted.deadlineDays,
+  },
+  reminds: submitted.reminds,
+  all_auto_responses: submitted.allAutoResponses,
+})

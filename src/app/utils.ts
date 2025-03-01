@@ -1,3 +1,5 @@
+import { z } from "zod"
+
 export type Either<E,A> =
   | { isRight: true, right: A }
   | { isRight: false, left: E }
@@ -17,3 +19,12 @@ export const optionalField = <K extends string,T>(
     return {}
   }
 }
+
+/** To be used in form rules validators */
+export const validateViaZod = <A,>(schema: z.Schema<A>, errorMessage: string) =>
+  (value: unknown): Promise<void> =>
+  schema.safeParseAsync(value).then(result =>
+      result.success
+        ? Promise.resolve()
+        : Promise.reject(errorMessage))
+  
