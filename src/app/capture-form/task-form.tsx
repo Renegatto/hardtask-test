@@ -14,12 +14,9 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit,isTransition}) => {
   const [form] = Form.useForm()
   useEffect(() => {
     form.setFieldValue('tags',[])
-  },[])
-  const minBudget = Form.useWatch<number | undefined>(formFields.budgetFrom, form);
-  console.log(minBudget)
-  const handleSubmit = (o: unknown): void => {
-    const task = formToTask(formSchema.parse(o))
-    console.log(task)
+  },[form])
+  const handleSubmit = (form: unknown): void => {
+    const task = formToTask(formSchema.parse(form))
     onSubmit(task)
   }
   return <Form form={form} onFinish={handleSubmit} disabled={isTransition}>
@@ -259,7 +256,7 @@ const formToTask = (submitted: SubmittedForm): Task => ({
 })
 
 const validateViaZod = <A,>(schema: z.Schema<A>, errorMessage: string) =>
-  (value: any): Promise<void> =>
+  (value: unknown): Promise<void> =>
   schema.safeParseAsync(value).then(result =>
       result.success
         ? Promise.resolve()

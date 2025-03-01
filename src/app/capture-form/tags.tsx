@@ -39,7 +39,7 @@ export const TaskTags: FC<{setValues: (tags: string[]) => void}> = ({setValues})
 }
 
 
-const NewTag: FC<{newTag: (tag: any) => void}> = ({
+const NewTag: FC<{newTag: (tag: string) => void}> = ({
   newTag,
 }) => {
   const inputRef = useRef<InputRef>(null)
@@ -62,9 +62,7 @@ const NewTag: FC<{newTag: (tag: any) => void}> = ({
       type="text"
       size="small"
       style={{ width: 78 }}
-      // value={inputValue}
       onChange={evt => setTag(evt.currentTarget.value)}
-      // onBlur={handleInputConfirm}
       onPressEnter={handleNewTag}
     />
   ) : (

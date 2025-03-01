@@ -27,7 +27,8 @@ describe('makeQuery', () => {
       }
       const outcome = await publishTask(example)
       console.log(outcome)
-      outcome.isRight ? undefined : expect(outcome.left).not.toBeDefined()
+      if (!outcome.isRight)
+        expect(outcome.left).not.toBeDefined()
       expect(outcome.isRight).toBe(true)
     })
   it('Produces the example query from the example params', () => {

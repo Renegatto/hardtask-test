@@ -1,6 +1,7 @@
 import {z} from 'zod';
 import { Either, optionalField } from './utils';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const taskSchema = z.object({
   token: z.string().uuid(), //uuid
   title: z.string(),
@@ -54,7 +55,7 @@ export type FailedToPublish =
   | FailedToPublish.InvalidRequest
 
 export namespace FailedToPublish {
-  export type InvalidResponse = { type: 'invalid-response', error: z.ZodError<any> };
+  export type InvalidResponse = { type: 'invalid-response', error: z.ZodError<unknown> };
   export type ConnectionFailed = { type: 'connection-failed', error: Error }
   export type InvalidRequest = { type: 'invalid-request', body: unknown }
   export type InternalServerError = { type: 'internal-server-error', body: unknown }
@@ -94,7 +95,7 @@ export const makeQuery = (toPublish: Task): string =>
     ENDPOINT_URL
   }?${
     Object.entries(taskQueryParams(toPublish))
-    .filter(([_, value]) => typeof value !== 'undefined')
+    .filter(([, value]) => typeof value !== 'undefined')
     .map(([queryParam, value]: [string,string]) => `${queryParam}=${encodeURIComponent(value)}`)
     .join('&')
   }`

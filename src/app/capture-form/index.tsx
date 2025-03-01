@@ -18,15 +18,13 @@ export const CaptureForm: FC<CaptureFormProps> = ({publishTask, Form}) => {
     })
   const [isTransition,startTransition] = useTransition()
   const handleSubmit = useCallback(async (task: Task) => startTransition(async () => {
-    console.log('publishing',task)
     const published = await publishTask(task) 
     const newPublished: Option<Either<FailedToPublish,PublishedTask>> =
       { isRight: true, right: published }
     if (!published.isRight)
       console.error(published.left)
     setPublished(newPublished)
-    console.log('new',newPublished)
-  }),[])
+  }),[publishTask])
   return <>
     Capture form
     <Flex vertical={true}>
