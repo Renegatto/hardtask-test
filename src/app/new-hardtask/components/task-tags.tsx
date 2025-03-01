@@ -1,7 +1,7 @@
 import { Input, InputRef, Tag } from "antd";
 import { FC, useEffect, useRef, useState } from "react";
 import { PlusOutlined } from '@ant-design/icons';
-import { useKey } from "../hooks";
+import { useKey } from "../../hooks";
 
 export const TaskTags: FC<{setValues: (tags: string[]) => void}> = ({setValues}) => {
   const {newKey} = useKey()

@@ -1,8 +1,8 @@
 import { FC, useEffect } from "react";
-import { Task } from "./endpoint-data";
+import { Task } from "../endpoint-data";
 import { Button, Flex, Form, Input, InputNumber, Spin } from "antd";
 import { z } from "zod";
-import { TaskTags } from "./tags";
+import { TaskTags } from "./task-tags";
 
 export type TaskFormProps = {
   onSubmit: (submitted: Task) => void,

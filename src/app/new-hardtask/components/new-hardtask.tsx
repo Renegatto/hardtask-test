@@ -1,16 +1,16 @@
 "use client"
 import { FC, useCallback, useState, useTransition } from "react";
-import { FailedToPublish, PublishedTask, Task } from "./endpoint-data";
+import { FailedToPublish, PublishedTask, Task } from "../endpoint-data";
 import { Alert, Flex } from "antd";
-import { Either } from "../utils";
+import { Either } from "../../utils";
 
-export type CaptureFormProps = {
+export type NewHardtaskProps = {
   publishTask: (task: Task) => Promise<Either<FailedToPublish,PublishedTask>>,
-  Form: FC<{ onSubmit: (submitted: Task) => void, isTransition: boolean }>
+  TaskForm: FC<{ onSubmit: (submitted: Task) => void, isTransition: boolean }>
 }
 type Option<A> = Either<null,A>
 
-export const CaptureForm: FC<CaptureFormProps> = ({publishTask, Form}) => {
+export const NewHardtask: FC<NewHardtaskProps> = ({publishTask, TaskForm}) => {
   const [published, setPublished] =
     useState<Option<Either<FailedToPublish,PublishedTask>>>({
       isRight: false,
@@ -28,7 +28,7 @@ export const CaptureForm: FC<CaptureFormProps> = ({publishTask, Form}) => {
   return <>
     Capture form
     <Flex vertical={true}>
-      <Form onSubmit={handleSubmit} isTransition={isTransition} />
+      <TaskForm onSubmit={handleSubmit} isTransition={isTransition} />
       { published.isRight
         ? <SubmissionResult result={published.right}/>
         : <></>

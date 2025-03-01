@@ -1,16 +1,16 @@
 "use client"
-import { CaptureForm } from "./capture-form";
+import { NewHardtask } from "./new-hardtask/components/new-hardtask";
 import styles from "./page.module.css";
-import { TaskForm } from "./capture-form/task-form";
-import { publishTask } from "./capture-form/endpoint-data";
+import { TaskForm } from "./new-hardtask/components/task-form";
+import { publishTask } from "./new-hardtask/endpoint-data";
 
 export default function Home() {
   return (
     <div className={styles["page"]}>
       <main className={styles["main"]}>
-        <CaptureForm
+        <NewHardtask
           publishTask={publishTask}
-          Form={TaskForm}
+          TaskForm={TaskForm}
         />
       </main>
       <footer className={styles["footer"]}>
