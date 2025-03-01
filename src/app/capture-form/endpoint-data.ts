@@ -1,4 +1,5 @@
 import {z} from 'zod';
+import { Either, optionalField } from './utils';
 
 const taskSchema = z.object({
   token: z.string().uuid(), //uuid
@@ -19,23 +20,6 @@ const taskSchema = z.object({
 })
 
 export type Task = z.infer<typeof taskSchema>
-//  {
-//   token: string, //uuid
-//   title: string,
-//   description?: string,
-//   tags: string[],
-//   budget_from: number,
-//   budget_to: number,
-//   deadline: number,
-//   reminds?: number,
-//   all_auto_responses: boolean,
-//   rules: {
-//     budget_from: number,
-//     budget_to: number,
-//     qty_freelancers: number,
-//     deadline_days: number,
-//   },
-// }
 
 export const publishedTaskSchema = z.object({
   ok: z.string(),
@@ -62,9 +46,29 @@ export const publishedTaskSchema = z.object({
 
 export type PublishedTask = z.infer<typeof publishedTaskSchema>
 
-export type Either<E,A> =
-  | { isRight: true, right: A }
-  | { isRight: false, left: E }
+export type FailedToPublish =
+  | FailedToPublish.AccessDenied
+  | FailedToPublish.ConnectionFailed
+  | FailedToPublish.InternalServerError
+  | FailedToPublish.InvalidResponse
+  | FailedToPublish.InvalidRequest
+
+export namespace FailedToPublish {
+  export type InvalidResponse = { type: 'invalid-response', error: z.ZodError<any> };
+  export type ConnectionFailed = { type: 'connection-failed', error: Error }
+  export type InvalidRequest = { type: 'invalid-request', body: unknown }
+  export type InternalServerError = { type: 'internal-server-error', body: unknown }
+  export type AccessDenied = { type: 'access-denied' }
+  export const prettyPrint = (err: FailedToPublish): string => {
+    switch (err.type) {
+      case 'access-denied': return "Access denied. Check your token."
+      case 'connection-failed': return "Failed to connect."
+      case 'internal-server-error': return 'Something went wrong on the server side'
+      case 'invalid-response': return 'Got unexpected response from the server. Please report a bug.'
+      case 'invalid-request': return 'Made incorrect request to the server. Please report a bug.'
+    }
+  }
+}
 
 const ENDPOINT_URL = "https://deadlinetaskbot.productlove.ru/api/v1/tasks/client/newhardtask"
 
@@ -78,7 +82,7 @@ const taskQueryParams = (task: Task): TaskQueryParams => ({
   budget_to: task.budget_to.toString(),
   deadline: task.deadline.toString(),
   reminds: Math.round(task.reminds).toString(),
-  ...optional(
+  ...optionalField(
     'all_auto_responses',
     typeof task.all_auto_responses !== 'undefined' ? task.all_auto_responses.toString() : undefined
   ),
@@ -95,29 +99,36 @@ export const makeQuery = (toPublish: Task): string =>
     .join('&')
   }`
 
-export const publishTask = async (task: Task): Promise<Either<Error,PublishedTask>> => {
-  const outcome = await fetch(makeQuery(task))
-  if (outcome.ok) {
-    return parsePublishedTask(await outcome.json())
+export const publishTask = async (task: Task): Promise<Either<FailedToPublish,PublishedTask>> => {
+  let outcome: Either<FailedToPublish.ConnectionFailed,Response>;
+  try {
+    outcome = Either.Right(await fetch(makeQuery(task)))
+  } catch (e) {
+    if (e instanceof Error) {
+      outcome = Either.Left({type: 'connection-failed', error: e})
+    } else {
+      throw e
+    }
+  }
+
+  if (!outcome.isRight) return outcome
+  if (outcome.right.ok) {
+    return parsePublishedTask(await outcome.right.json())
   } else {
-    return { isRight: false, left: new Error(outcome.statusText) }
+    switch (Math.floor(outcome.right.status/100)) {
+      case 5: return Either.Left({
+        type: 'internal-server-error',
+        body: await outcome.right.json()
+      });
+      default:
+        throw new Error('FIXME: handle other status codes')
+    }
   }
 }
 
-const parsePublishedTask = (published: unknown): Either<Error,PublishedTask> => {
+const parsePublishedTask = (published: unknown): Either<FailedToPublish.InvalidResponse,PublishedTask> => {
   const parsed = publishedTaskSchema.safeParse(published)
   return parsed.success
-    ? { isRight: true, right: parsed.data }
-    : { isRight: false, left: parsed.error }
-}
-
-const optional = <K extends string,T>(
-  key: K,
-  value: T,
-): { [key in K]?: NonNullable<T> } => {
-  if (value != undefined) {
-    return { [key as K]: value } as { [key in K]?: NonNullable<T>}
-  } else {
-    return {}
-  }
+    ? Either.Right(parsed.data)
+    : Either.Left({ type: 'invalid-response', error: parsed.error })
 }

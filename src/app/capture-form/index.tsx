@@ -1,27 +1,59 @@
 "use client"
 import { FC, useCallback, useState } from "react";
-import { Either, PublishedTask, Task } from "./endpoint-data";
+import { FailedToPublish, PublishedTask, Task } from "./endpoint-data";
+import { Alert, Flex } from "antd";
+import { Either } from "./utils";
 
 export type CaptureFormProps = {
-  publishTask: (task: Task) => Promise<Either<Error,PublishedTask>>,
+  publishTask: (task: Task) => Promise<Either<FailedToPublish,PublishedTask>>,
   Form: FC<{ onSubmit: (submitted: Task) => void, }>
 }
 type Option<A> = Either<null,A>
 
 export const CaptureForm: FC<CaptureFormProps> = ({publishTask, Form}) => {
-  const [published, setPublished] = useState<Option<Either<Error,PublishedTask>>>({
-     isRight: false,
-     left: null,
-  })
+  const [published, setPublished] =
+    useState<Option<Either<FailedToPublish,PublishedTask>>>({
+      isRight: false,
+      left: null,
+    })
   const handleSubmit = useCallback(async (task: Task) => {
     console.log('publishing',task)
-    const newPublished: Option<Either<Error,PublishedTask>> =
-      { isRight: true, right: await publishTask(task) }
+    const published = await publishTask(task) 
+    const newPublished: Option<Either<FailedToPublish,PublishedTask>> =
+      { isRight: true, right: published }
+    if (!published.isRight)
+      console.error(published.left)
     setPublished(newPublished)
     console.log('new',newPublished)
   },[])
   return <>
     Capture form
-    <><Form onSubmit={handleSubmit}/></>
+    <Flex vertical={true}>
+      <Form onSubmit={handleSubmit}/>
+      { published.isRight
+        ? <SubmissionResult result={published.right} />
+        : <></>
+      }
+    </Flex>
+  </>
+}
+
+const SubmissionResult: FC<{
+  result: Either<FailedToPublish,PublishedTask>
+}> = ({result}) => {
+  return <>
+    {result.isRight
+      ? 
+      <Alert
+        message="Published successfully"
+        type="success"
+        description={result.right.ok}
+      />
+      : <Alert
+        message="Failed to publish"
+        type="error"
+        description={FailedToPublish.prettyPrint(result.left)}
+      />
+    }
   </>
 }
