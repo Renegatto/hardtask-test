@@ -31,15 +31,21 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit,isTransition}) => {
   },[form])
   const handleSubmit = (submittedForm: unknown): void =>
     onSubmit(formSchema.parse(submittedForm))
-  return <Form form={form} onFinish={handleSubmit} disabled={isTransition}>
+  const budgetFrom: number | undefined = Form.useWatch(formFields.budgetFrom,form)
+  return <Form
+      form={form}
+      onFinish={handleSubmit}
+      disabled={isTransition}>
+      
     <Form.Item
+      validateDebounce={100}
       name={formFields.token}
-      label="Token"
-      tooltip="UUID v4 token of the task"
+      label="API token"
+      tooltip="UUID v4 token that provides an access to the API"
       rules={[
-        {required: true, message: 'Please specify task ID'},
+        {required: true, message: 'Please specify API token'},
         { validator: (_,value) =>
-          validateViaZod(z.string().uuid(),'Invalid UUID')(value)
+          validateViaZod(z.string().uuid().optional(),'Invalid UUID')(value)
         },
       ]}
     >
@@ -52,10 +58,11 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit,isTransition}) => {
       name={formFields.title}
       label="Title"
       tooltip="Hardtask title"
+      validateDebounce={100}
       rules={[
         {required: true, message: 'Please specify the task title'},
         { validator: (_,value) =>
-          validateViaZod(z.string(),'Invalid string')(value)
+          validateViaZod(z.string().optional(),'Invalid string')(value)
         },
       ]}
     >
@@ -67,10 +74,11 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit,isTransition}) => {
       name={formFields.description}
       label="Description"
       tooltip="Detailed description of the task."
+      validateDebounce={100}
       rules={[
         {required: true, message: 'Please specify the task description'},
         { validator: (_,value) =>
-          validateViaZod(z.string(),'Invalid string')(value)
+          validateViaZod(z.string().optional(),'Invalid string')(value)
         },
       ]}
     >
@@ -80,6 +88,7 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit,isTransition}) => {
     </Form.Item>
     <Form.Item
       name={formFields.tags}
+      validateDebounce={100}
       rules={[
         { validator: (_,value) =>
           validateViaZod(z.array(z.string()),'Invalid tags')(value)
@@ -95,11 +104,12 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit,isTransition}) => {
     <Flex>
       <Form.Item
         name={formFields.budgetFrom}
+        validateDebounce={100}
         rules={[
           {required: true, message: 'Please specify the minimal budget'},
           { validator: (_,value) => 
             validateViaZod(
-              z.number().nonnegative(),'Invalid nonnegative number'
+              z.number().nonnegative().optional(),'Invalid nonnegative number'
             )(value)
           },
         ]}
@@ -115,6 +125,7 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit,isTransition}) => {
       </Form.Item>
       <Form.Item
         name={formFields.budgetTo}
+        validateDebounce={100}
         rules={[{
           required: true,
           message: 'Please specify the maximal budget',
@@ -122,7 +133,7 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit,isTransition}) => {
         ({getFieldValue}) => ({
           validator: async (_,value) => {
             await validateViaZod(
-              z.number().nonnegative(),'Invalid nonnegative number'
+              z.number().nonnegative().optional(),'Invalid nonnegative number'
             )(value)
             if (value <= getFieldValue(formFields.budgetFrom))
               await Promise.reject('Max budget can not be less than min budget')
@@ -135,20 +146,21 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit,isTransition}) => {
           style={{gridArea: 'to'}}
           step={1000} // maybe sync values with 'from' so it is never less
           addonAfter="₽"
-          min={0}
+          min={budgetFrom || 0}
           placeholder='50000'
         />
       </Form.Item>
     </Flex>
     <Form.Item
       name={formFields.deadlineDays}
+      validateDebounce={100}
       label='Deadline'
       tooltip='Deadline in days.'
       rules={[
         {required: true, message: 'Please specify the task deadline'},
         { validator: (_,value) => 
           validateViaZod(
-            z.number().positive(),'Invalid positive number'
+            z.number().positive().optional(),'Invalid positive number'
           )(value)
         },
       ]}
@@ -157,6 +169,7 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit,isTransition}) => {
     </Form.Item>
     <Form.Item
       name={formFields.reminds}
+      validateDebounce={100}
       label='Reminds'
       initialValue={3}
       tooltip='How many times to remind the applicant about the deadline.'
@@ -191,6 +204,7 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit,isTransition}) => {
       name={formFields.freelancers}
       label='Workload'
       initialValue={1}
+      validateDebounce={100}
       tooltip='How many freelancers needed to get the work done.'
       rules={[
         { validator: (_,value) => 
