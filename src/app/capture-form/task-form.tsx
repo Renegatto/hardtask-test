@@ -1,6 +1,6 @@
 import { FC, useEffect } from "react";
 import { Task } from "./endpoint-data";
-import { Button, Checkbox, Flex, Form, Input, InputNumber, Spin } from "antd";
+import { Button, Flex, Form, Input, InputNumber, Spin } from "antd";
 import { z } from "zod";
 import { TaskTags } from "./tags";
 
@@ -161,10 +161,13 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit,isTransition}) => {
     >
       <InputNumber min={0} addonAfter='times' />
     </Form.Item>
+    {/*
+    // TODO: Figure out how it works
     <Form.Item
       name={formFields.allAutoResponses}
       label='Auto-response'
       tooltip='Whether to automatically response to freelancers or not.'
+      valuePropName="checked"
       rules={[
         { validator: (_,value) => 
           validateViaZod(
@@ -174,7 +177,7 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit,isTransition}) => {
       ]}
     >
       <Checkbox checked={false}>Automatically respond to freelancers</Checkbox>
-    </Form.Item>
+    </Form.Item> */}
     <Form.Item
       name={formFields.freelancers}
       label='Workload'
@@ -238,7 +241,10 @@ const formFields: { [key in keyof Required<SubmittedForm>]: key } = ({
 })
 
 const formToTask = (submitted: SubmittedForm): Task => ({
-  ...submitted,
+  token: submitted.token,
+  title: submitted.title,
+  description: submitted.description,
+  tags: submitted.tags,
   budget_from: submitted.budgetFrom,
   budget_to: submitted.budgetTo,
   deadline: submitted.deadlineDays,

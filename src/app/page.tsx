@@ -1,5 +1,4 @@
 "use client"
-import { FC } from "react";
 import { CaptureForm } from "./capture-form";
 import styles from "./page.module.css";
 import { TaskForm } from "./capture-form/task-form";
