@@ -1,10 +1,13 @@
 import { makeQuery, publishTask, Task } from "./endpoint-data";
 
-const TEST_API_CALLS = false
+const WITH_BACKEND_ENV = 'with_backend'
+const itif = (envVar: string) =>
+  process.env[envVar]
+    ? it
+    : it.skip
 
 describe('makeQuery', () => {
-  if (TEST_API_CALLS)
-    it('Can make query and parse result', async () => {
+  itif(WITH_BACKEND_ENV)('Can make query and parse result', async () => {
       const example: Task = {
         token: '317ad1fc-e0a9-11ef-a978-0242ac120007',
         title: "Сделать дизайн баннера",
