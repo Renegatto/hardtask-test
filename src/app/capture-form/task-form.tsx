@@ -1,8 +1,7 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect } from "react";
 import { Task } from "./endpoint-data";
-import { Button, Checkbox, Flex, Form, Input, InputNumber, List, Radio, Tag, Tooltip } from "antd";
+import { Button, Checkbox, Flex, Form, Input, InputNumber } from "antd";
 import { z } from "zod";
-import { PlusOutlined } from '@ant-design/icons';
 import { TaskTags } from "./tags";
 
 export type TaskFormProps = {
@@ -11,12 +10,11 @@ export type TaskFormProps = {
 const UUID_PLACEHOLDER = "317ad1fc-e0a9-11ef-a978-0242ac120007"
 
 export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
-  const BUDGET_FROM_FIELD = 'budgetFrom'
   const [form] = Form.useForm()
   useEffect(() => {
     form.setFieldValue('tags',[])
   },[])
-  const minBudget = Form.useWatch<number | undefined>(BUDGET_FROM_FIELD, form);
+  const minBudget = Form.useWatch<number | undefined>(formFields.budgetFrom, form);
   console.log(minBudget)
   const handleSubmit = (o: unknown): void => {
     const task = formToTask(formSchema.parse(o))
@@ -25,7 +23,7 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
   }
   return <Form form={form} onFinish={handleSubmit}>
     <Form.Item
-      name='token'
+      name={formFields.token}
       label="Token"
       tooltip="UUID v4 token of the task"
       rules={[{required: true, message: 'Please specify task ID'}]}
@@ -36,7 +34,7 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
       />
     </Form.Item>
     <Form.Item
-      name='title'
+      name={formFields.title}
       label="Title"
       tooltip="Hardtask title"
       rules={[{required: true, message: 'Please specify the task title'}]}
@@ -46,7 +44,7 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
       />
     </Form.Item>
     <Form.Item
-      name='description'
+      name={formFields.description}
       label="Description"
       tooltip="Detailed description of the task."
       rules={[{required: true, message: 'Please specify the task description'}]}
@@ -56,13 +54,17 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
       />
     </Form.Item>
     <Form.Item
-      name='tags'
+      name={formFields.tags}
     >
-      <TaskTags setValues={tags => form.setFieldValue('tags',tags)}/>
+      <TaskTags
+        setValues={tags =>
+          form.setFieldValue(formFields.tags,tags)
+        }
+      />
     </Form.Item>
     <Flex>
       <Form.Item
-        name={BUDGET_FROM_FIELD}
+        name={formFields.budgetFrom}
         rules={[{required: true, message: 'Please specify the minimal budget'}]}
       >
         <InputNumber
@@ -75,7 +77,7 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
         />
       </Form.Item>
       <Form.Item
-        name='budgetTo'
+        name={formFields.budgetTo}
         rules={[{
           required: true,
           message: 'Please specify the maximal budget',
@@ -96,7 +98,7 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
       </Form.Item>
     </Flex>
     <Form.Item
-      name='deadlineDays'
+      name={formFields.deadlineDays}
       label='Deadline'
       tooltip='Deadline in days.'
       rules={[{required: true, message: 'Please specify the task deadline'}]}
@@ -104,7 +106,7 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
       <InputNumber min={1} placeholder='3' addonAfter={<>days</>} />
     </Form.Item>
     <Form.Item
-      name='reminds'
+      name={formFields.reminds}
       label='Reminds'
       initialValue={3}
       tooltip='How many times to remind the applicant about the deadline.'
@@ -112,14 +114,14 @@ export const TaskForm: FC<TaskFormProps> = ({onSubmit}) => {
       <InputNumber min={0}  addonAfter='times' />
     </Form.Item>
     <Form.Item
-      name='allAutoResponses'
+      name={formFields.allAutoResponses}
       label='Auto-response'
       tooltip='Whether to automatically response to freelancers or not.'
     >
       <Checkbox checked={false}>Automatically respond to freelancers</Checkbox>
     </Form.Item>
     <Form.Item
-      name='freelancers'
+      name={formFields.freelancers}
       label='Workload'
       initialValue={1}
       tooltip='How many freelancers needed to get the work done.'
@@ -147,6 +149,18 @@ const formSchema = z.object({
   freelancers: z.number().positive(),
 })
 type SubmittedForm = z.infer<typeof formSchema>
+const formFields: { [key in keyof Required<SubmittedForm>]: key } = ({
+  token: "token",
+  title: "title",
+  description: "description",
+  tags: "tags",
+  budgetFrom: "budgetFrom",
+  budgetTo: "budgetTo",
+  deadlineDays: "deadlineDays",
+  reminds: "reminds",
+  allAutoResponses: "allAutoResponses",
+  freelancers: "freelancers",
+})
 
 const formToTask = (submitted: SubmittedForm): Task => ({
   ...submitted,

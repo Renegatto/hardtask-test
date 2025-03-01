@@ -1,5 +1,5 @@
-import { Input, Tag } from "antd";
-import { FC, useState } from "react";
+import { Input, InputRef, Tag } from "antd";
+import { FC, useEffect, useRef, useState } from "react";
 import { PlusOutlined } from '@ant-design/icons';
 
 const useKey = (): {
@@ -31,7 +31,7 @@ export const TaskTags: FC<{setValues: (tags: string[]) => void}> = ({setValues})
   }
   return <>
    {  tags.map(({tag,key}) => {
-        return <Tag key={key} closeIcon onClose={() => handleDeleteTag(key)}>{tag} {key}</Tag>
+        return <Tag key={key} closeIcon onClose={() => handleDeleteTag(key)}>{tag}</Tag>
       })
     }
     <NewTag newTag={handleAddTag}/>
@@ -42,6 +42,7 @@ export const TaskTags: FC<{setValues: (tags: string[]) => void}> = ({setValues})
 const NewTag: FC<{newTag: (tag: any) => void}> = ({
   newTag,
 }) => {
+  const inputRef = useRef<InputRef>(null)
   const [showInput, setShowInput] = useState(false);
   const [tag, setTag] = useState('')
   const handleNewTag = () => {
@@ -49,9 +50,15 @@ const NewTag: FC<{newTag: (tag: any) => void}> = ({
     newTag(tag)
     setTag('')
   }
+  useEffect(() => {
+    if (showInput) inputRef.current?.focus();
+  },[showInput])
+  const handleInput = () => {
+    setShowInput(true)
+  }
   return showInput ? (
     <Input
-      // ref={inputRef}
+      ref={inputRef}
       type="text"
       size="small"
       style={{ width: 78 }}
@@ -61,7 +68,7 @@ const NewTag: FC<{newTag: (tag: any) => void}> = ({
       onPressEnter={handleNewTag}
     />
   ) : (
-    <Tag onClick={() => setShowInput(true)}>
+    <Tag onClick={handleInput}>
       <PlusOutlined /> New Tag
     </Tag>
   )

@@ -22,9 +22,6 @@ export const CaptureForm: FC<CaptureFormProps> = ({publishTask, Form}) => {
   },[])
   return <>
     Capture form
-    <><Form onSubmit={handleSubmit}/>
-      <br/>
-      {JSON.stringify(published,null,2)}
-    </>
+    <><Form onSubmit={handleSubmit}/></>
   </>
 }
