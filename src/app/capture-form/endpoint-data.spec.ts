@@ -1,6 +1,32 @@
-import { makeQuery, Task } from "./endpoint-data";
+import { makeQuery, publishTask, Task } from "./endpoint-data";
+
+const TEST_API_CALLS = false
 
 describe('makeQuery', () => {
+  if (TEST_API_CALLS)
+    it('Can make query and parse result', async () => {
+      const example: Task = {
+        token: '317ad1fc-e0a9-11ef-a978-0242ac120007',
+        title: "Сделать дизайн баннера",
+        description: "Сделать дизайн карточки товара с нашими фото для вб",
+        tags: ["вб"," дизайн"," фигма"],
+        budget_from: 1000,
+        budget_to: 5000,
+        deadline: 1,
+        reminds: 3,
+        all_auto_responses: false,
+        rules: {
+          budget_from: 5000,
+          budget_to: 8000,
+          deadline_days: 5,
+          qty_freelancers: 1,
+        },
+      }
+      const outcome = await publishTask(example)
+      console.log(outcome)
+      outcome.isRight ? undefined : expect(outcome.left).not.toBeDefined()
+      expect(outcome.isRight).toBe(true)
+    })
   it('Produces the example query from the example params', () => {
     const example: Task = {
       token: '317ad1fc-e0a9-11ef-a978-0242ac120007',
