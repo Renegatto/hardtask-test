@@ -1,22 +1,41 @@
 import {z} from 'zod';
 
-export type Task = {
-  token: string, //uuid
-  title: string,
-  description: string,
-  tags: string[],
-  budget_from: number,
-  budget_to: number,
-  deadline: number,
-  reminds?: number,
-  all_auto_responses: boolean,
-  rules: {
-    budget_from: number,
-    budget_to: number,
-    qty_freelancers: number,
-    deadline_days: number,
-  },
-}
+const taskSchema = z.object({
+  token: z.string().uuid(), //uuid
+  title: z.string(),
+  description: z.string(),
+  tags: z.array(z.string()),
+  budget_from: z.number().nonnegative(),
+  budget_to: z.number().nonnegative(),
+  deadline: z.number().positive(),
+  reminds: z.number().nonnegative(),
+  all_auto_responses: z.boolean().optional(),
+  rules: z.object({
+    budget_from: z.number().nonnegative(),
+    budget_to: z.number().nonnegative(),
+    qty_freelancers: z.number().positive(),
+    deadline_days: z.number().positive(),
+  }),
+})
+
+export type Task = z.infer<typeof taskSchema>
+//  {
+//   token: string, //uuid
+//   title: string,
+//   description?: string,
+//   tags: string[],
+//   budget_from: number,
+//   budget_to: number,
+//   deadline: number,
+//   reminds?: number,
+//   all_auto_responses: boolean,
+//   rules: {
+//     budget_from: number,
+//     budget_to: number,
+//     qty_freelancers: number,
+//     deadline_days: number,
+//   },
+// }
 
 export const publishedTaskSchema = z.object({
   ok: z.string(),
@@ -58,8 +77,11 @@ const taskQueryParams = (task: Task): TaskQueryParams => ({
   budget_from: task.budget_from.toString(),
   budget_to: task.budget_to.toString(),
   deadline: task.deadline.toString(),
-  ...task.reminds ? { reminds: Math.round(task.reminds).toString() } : {},
-  all_auto_responses: task.all_auto_responses.toString(),
+  reminds: Math.round(task.reminds).toString(),
+  ...optional(
+    'all_auto_responses',
+    typeof task.all_auto_responses !== 'undefined' ? task.all_auto_responses.toString() : undefined
+  ),
   rules: JSON.stringify(task.rules),
 })
 
@@ -68,7 +90,8 @@ export const makeQuery = (toPublish: Task): string =>
     ENDPOINT_URL
   }?${
     Object.entries(taskQueryParams(toPublish))
-    .map(([queryParam, value]) => `${queryParam}=${encodeURIComponent(value)}`)
+    .filter(([_, value]) => typeof value !== 'undefined')
+    .map(([queryParam, value]: [string,string]) => `${queryParam}=${encodeURIComponent(value)}`)
     .join('&')
   }`
 
@@ -86,4 +109,15 @@ const parsePublishedTask = (published: unknown): Either<Error,PublishedTask> => 
   return parsed.success
     ? { isRight: true, right: parsed.data }
     : { isRight: false, left: parsed.error }
+}
+
+const optional = <K extends string,T>(
+  key: K,
+  value: T,
+): { [key in K]?: NonNullable<T> } => {
+  if (value != undefined) {
+    return { [key as K]: value } as { [key in K]?: NonNullable<T>}
+  } else {
+    return {}
+  }
 }

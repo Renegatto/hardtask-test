@@ -14,10 +14,17 @@ export const CaptureForm: FC<CaptureFormProps> = ({publishTask, Form}) => {
      left: null,
   })
   const handleSubmit = useCallback(async (task: Task) => {
-    setPublished({ isRight: true, right: await publishTask(task) })
+    console.log('publishing',task)
+    const newPublished: Option<Either<Error,PublishedTask>> =
+      { isRight: true, right: await publishTask(task) }
+    setPublished(newPublished)
+    console.log('new',newPublished)
   },[])
   return <>
     Capture form
-    <><Form onSubmit={handleSubmit}/></>
+    <><Form onSubmit={handleSubmit}/>
+      <br/>
+      {JSON.stringify(published,null,2)}
+    </>
   </>
 }
