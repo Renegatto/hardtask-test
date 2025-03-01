@@ -2,7 +2,7 @@
 import { FC, useCallback, useState, useTransition } from "react";
 import { FailedToPublish, PublishedTask, Task } from "./endpoint-data";
 import { Alert, Flex } from "antd";
-import { Either } from "./utils";
+import { Either } from "../utils";
 
 export type CaptureFormProps = {
   publishTask: (task: Task) => Promise<Either<FailedToPublish,PublishedTask>>,

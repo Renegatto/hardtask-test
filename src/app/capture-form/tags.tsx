@@ -1,18 +1,7 @@
 import { Input, InputRef, Tag } from "antd";
 import { FC, useEffect, useRef, useState } from "react";
 import { PlusOutlined } from '@ant-design/icons';
-
-const useKey = (): {
-  newKey: (withKey: (key: number) => void) => void
-} => {
-  const [i,setI] = useState(0)
-  return {
-    newKey: withKey => {
-      setI(i + 1)
-      withKey(i)
-    } 
-  }
-}
+import { useKey } from "../hooks";
 
 export const TaskTags: FC<{setValues: (tags: string[]) => void}> = ({setValues}) => {
   const {newKey} = useKey()
@@ -30,9 +19,14 @@ export const TaskTags: FC<{setValues: (tags: string[]) => void}> = ({setValues})
     setValues(updated.map(tag => tag.tag))
   }
   return <>
-   {  tags.map(({tag,key}) => {
-        return <Tag key={key} closeIcon onClose={() => handleDeleteTag(key)}>{tag}</Tag>
-      })
+   {  tags.map(({tag,key}) =>
+        <Tag
+          key={key}
+          closeIcon
+          onClose={() => handleDeleteTag(key)}
+        >{tag}
+        </Tag>
+      )
     }
     <NewTag newTag={handleAddTag}/>
   </>
