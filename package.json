@@ -11,6 +11,7 @@
     "test-with-backend": "with_backend=true npx jest"
   },
   "dependencies": {
+    "@ant-design/v5-patch-for-react-19": "^1.0.3",
     "antd": "^5.24.2",
     "next": "15.2.0",
     "react": "^19.0.0",

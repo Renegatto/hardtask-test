@@ -8,7 +8,7 @@ export type TaskFormProps = {
 const UUID_PLACEHOLDER = "317ad1fc-e0a9-11ef-a978-0242ac120007"
 
 export const TaskForm: FC<TaskFormProps> = () => {
- 
+  
   return <Form>
     <Form.Item
       label="Token"
