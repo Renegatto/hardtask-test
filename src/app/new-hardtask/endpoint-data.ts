@@ -53,6 +53,7 @@ export type FailedToPublish =
   | FailedToPublish.InternalServerError
   | FailedToPublish.InvalidResponse
   | FailedToPublish.InvalidRequest
+  | FailedToPublish.OtherFailedStatus
 
 export namespace FailedToPublish {
   export type InvalidResponse = { type: 'invalid-response', error: z.ZodError<unknown> };
@@ -60,6 +61,12 @@ export namespace FailedToPublish {
   export type InvalidRequest = { type: 'invalid-request', body: unknown }
   export type InternalServerError = { type: 'internal-server-error', body: unknown }
   export type AccessDenied = { type: 'access-denied' }
+  export type OtherFailedStatus = {
+    type: 'other',
+    statusCode: number,
+    statusCodeMessage: string,
+    body: unknown,
+  }
   export const prettyPrint = (err: FailedToPublish): string => {
     switch (err.type) {
       case 'access-denied': return "Access denied. Check your token."
@@ -67,6 +74,7 @@ export namespace FailedToPublish {
       case 'internal-server-error': return 'Something went wrong on the server side'
       case 'invalid-response': return 'Got unexpected response from the server. Please report a bug.'
       case 'invalid-request': return 'Made incorrect request to the server. Please report a bug.'
+      case 'other': return `Something went wrong. ${err.statusCodeMessage}`
     }
   }
 }
@@ -111,18 +119,29 @@ export const publishTask = async (task: Task): Promise<Either<FailedToPublish,Pu
       throw e
     }
   }
-
   if (!outcome.isRight) return outcome
   if (outcome.right.ok) {
     return parsePublishedTask(await outcome.right.json())
   } else {
-    switch (Math.floor(outcome.right.status/100)) {
-      case 5: return Either.Left({
+    switch (outcome.right.status) {
+      case 500: return Either.Left({
         type: 'internal-server-error',
         body: await outcome.right.json()
       });
-      default:
-        throw new Error('FIXME: handle other status codes')
+      case 401: return Either.Left({
+        type: 'access-denied',
+        body: await outcome.right.json()
+      });
+      case 400: return Either.Left({
+        type: 'invalid-request',
+        body: await outcome.right.json()
+      });
+      default: return Either.Left({
+        type: 'other',
+        statusCode: outcome.right.status,
+        statusCodeMessage: outcome.right.statusText,
+        body: await outcome.right.json()
+      });
     }
   }
 }
