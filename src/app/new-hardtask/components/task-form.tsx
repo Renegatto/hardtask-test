@@ -1,5 +1,5 @@
 import { FC, useEffect } from "react";
-import { Button, Flex, Form, Input, InputNumber, Spin } from "antd";
+import { Button, Form, Input, InputNumber, Spin } from "antd";
 import { z } from "zod";
 import { TaskTags } from "./task-tags";
 import { validateViaZod } from "@/app/utils";
@@ -41,7 +41,12 @@ export const TaskForm: FC<TaskFormProps> = ({
     form,
   );
   return (
-    <Form form={form} onFinish={handleSubmit} disabled={isTransition}>
+    <Form
+      form={form}
+      {...formItemLayout}
+      onFinish={handleSubmit}
+      disabled={isTransition}
+    >
       <Form.Item
         validateDebounce={100}
         name={formFields.token}
@@ -97,6 +102,7 @@ export const TaskForm: FC<TaskFormProps> = ({
       </Form.Item>
       <Form.Item
         name={formFields.tags}
+        label="Tags"
         validateDebounce={100}
         rules={[
           {
@@ -109,7 +115,7 @@ export const TaskForm: FC<TaskFormProps> = ({
           setValues={(tags) => form.setFieldValue(formFields.tags, tags)}
         />
       </Form.Item>
-      <Flex>
+      <Form.Item label="Budget">
         <Form.Item
           name={formFields.budgetFrom}
           validateDebounce={100}
@@ -164,7 +170,7 @@ export const TaskForm: FC<TaskFormProps> = ({
             placeholder="50000"
           />
         </Form.Item>
-      </Flex>
+      </Form.Item>
       <Form.Item
         name={formFields.deadlineDays}
         validateDebounce={100}
@@ -243,6 +249,17 @@ export const TaskForm: FC<TaskFormProps> = ({
       </Form.Item>
     </Form>
   );
+};
+
+const formItemLayout = {
+  labelCol: {
+    xs: { span: 24 },
+    sm: { span: 6 },
+  },
+  wrapperCol: {
+    xs: { span: 24 },
+    sm: { span: 14 },
+  },
 };
 
 const formSchema = z.object({
