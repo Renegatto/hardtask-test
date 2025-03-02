@@ -1,4 +1,4 @@
-import { makeQuery, publishTask, Task } from "./endpoint-data";
+import { makeQuery, publishTask, Task } from "./newhardtask";
 
 const WITH_BACKEND_ENV = "with_backend";
 const itif = (envVar: string) => (process.env[envVar] ? it : it.skip);

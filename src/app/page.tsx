@@ -1,16 +1,16 @@
 "use client";
-import {
-  NewHardtask,
-  submittedFormToTask,
-} from "./new-hardtask/components/new-hardtask";
-import styles from "./page.module.css";
-import { TaskForm } from "./new-hardtask/components/task-form";
-import { publishTask } from "./new-hardtask/endpoint-data";
+import { NewHardtask, submittedFormToTask } from "@/components/new-hardtask/new-hardtask";
+
+import { Layout } from "antd";
+import { Content } from "antd/es/layout/layout";
+import { contentStyle, layoutStyle } from "./styles";
+import { TaskForm } from "@/components/task-form/task-form";
+import { publishTask } from "@/service/api/newhardtask";
 
 export default function Home() {
   return (
-    <div className={styles["page"]}>
-      <main className={styles["main"]}>
+    <Layout style={layoutStyle}>
+      <Content style={contentStyle}>
         <NewHardtask
           publishTask={publishTask}
           TaskForm={(key, onSubmit, isTransition, token) => (
@@ -22,8 +22,7 @@ export default function Home() {
             />
           )}
         />
-      </main>
-      <footer className={styles["footer"]}></footer>
-    </div>
+      </Content>
+    </Layout>
   );
 }

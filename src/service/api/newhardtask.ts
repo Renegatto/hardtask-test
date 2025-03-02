@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Either, optionalField } from "../utils";
+import { Either, optionalField } from "../../utils/index";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const taskSchema = z.object({

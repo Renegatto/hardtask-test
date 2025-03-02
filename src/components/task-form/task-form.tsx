@@ -1,8 +1,11 @@
 import { FC, useEffect } from "react";
 import { Button, Form, Input, InputNumber, Spin } from "antd";
 import { z } from "zod";
-import { TaskTags } from "./task-tags";
-import { validateViaZod } from "@/app/utils";
+import { TaskTags } from "../task-tags/task-tags";
+import { validateViaZod } from "@/utils";
+import TextArea from "antd/es/input/TextArea";
+import { formFields, formSchema } from "./utils";
+import { formItemLayout } from "./styles";
 
 export type TaskFormProps = {
   onSubmit: (submitted: SubmittedForm) => void;
@@ -31,15 +34,20 @@ export const TaskForm: FC<TaskFormProps> = ({
   token,
 }) => {
   const [form] = Form.useForm();
+  const { Item } = Form;
+
   useEffect(() => {
     form.setFieldValue("tags", []);
   }, [form]);
+
   const handleSubmit = (submittedForm: unknown): void =>
     onSubmit(formSchema.parse(submittedForm));
+
   const budgetFrom: number | undefined = Form.useWatch(
     formFields.budgetFrom,
     form,
   );
+
   return (
     <Form
       form={form}
@@ -47,7 +55,7 @@ export const TaskForm: FC<TaskFormProps> = ({
       onFinish={handleSubmit}
       disabled={isTransition}
     >
-      <Form.Item
+      <Item
         validateDebounce={100}
         name={formFields.token}
         label="API token"
@@ -69,8 +77,8 @@ export const TaskForm: FC<TaskFormProps> = ({
           placeholder={UUID_PLACEHOLDER}
           style={{ width: `${UUID_PLACEHOLDER.length}ch` }}
         />
-      </Form.Item>
-      <Form.Item
+      </Item>
+      <Item
         name={formFields.title}
         label="Title"
         tooltip="Hardtask title"
@@ -84,8 +92,8 @@ export const TaskForm: FC<TaskFormProps> = ({
         ]}
       >
         <Input placeholder="A title" />
-      </Form.Item>
-      <Form.Item
+      </Item>
+      <Item
         name={formFields.description}
         label="Description"
         tooltip="Detailed description of the task."
@@ -98,9 +106,9 @@ export const TaskForm: FC<TaskFormProps> = ({
           },
         ]}
       >
-        <Input placeholder="A hardtask description." />
-      </Form.Item>
-      <Form.Item
+        <TextArea placeholder="A hardtask description." rows={3} />
+      </Item>
+      <Item
         name={formFields.tags}
         label="Tags"
         validateDebounce={100}
@@ -114,9 +122,9 @@ export const TaskForm: FC<TaskFormProps> = ({
         <TaskTags
           setValues={(tags) => form.setFieldValue(formFields.tags, tags)}
         />
-      </Form.Item>
-      <Form.Item label="Budget">
-        <Form.Item
+      </Item>
+      <Item label="Budget" required>
+        <Item
           name={formFields.budgetFrom}
           validateDebounce={100}
           rules={[
@@ -138,8 +146,8 @@ export const TaskForm: FC<TaskFormProps> = ({
             addonAfter="₽"
             placeholder="5000"
           />
-        </Form.Item>
-        <Form.Item
+        </Item>
+        <Item
           name={formFields.budgetTo}
           validateDebounce={100}
           rules={[
@@ -169,9 +177,9 @@ export const TaskForm: FC<TaskFormProps> = ({
             min={budgetFrom || 0}
             placeholder="50000"
           />
-        </Form.Item>
-      </Form.Item>
-      <Form.Item
+        </Item>
+      </Item>
+      <Item
         name={formFields.deadlineDays}
         validateDebounce={100}
         label="Deadline"
@@ -188,8 +196,8 @@ export const TaskForm: FC<TaskFormProps> = ({
         ]}
       >
         <InputNumber min={1} placeholder="3" addonAfter={<>days</>} />
-      </Form.Item>
-      <Form.Item
+      </Item>
+      <Item
         name={formFields.reminds}
         validateDebounce={100}
         label="Reminds"
@@ -206,7 +214,7 @@ export const TaskForm: FC<TaskFormProps> = ({
         ]}
       >
         <InputNumber min={0} addonAfter="times" />
-      </Form.Item>
+      </Item>
       {/*
     // TODO: Figure out how it works
     <Form.Item
@@ -224,7 +232,7 @@ export const TaskForm: FC<TaskFormProps> = ({
     >
       <Checkbox checked={false}>Automatically respond to freelancers</Checkbox>
     </Form.Item> */}
-      <Form.Item
+      <Item
         name={formFields.freelancers}
         label="Workload"
         initialValue={1}
@@ -241,49 +249,12 @@ export const TaskForm: FC<TaskFormProps> = ({
         ]}
       >
         <InputNumber min={1} addonAfter="freelancers required" />
-      </Form.Item>
-      <Form.Item label={null}>
+      </Item>
+      <Item>
         <Button type="primary" htmlType="submit">
-          Publish task {isTransition ? <Spin></Spin> : <></>}
+          Publish task {isTransition && <Spin />}
         </Button>
-      </Form.Item>
+      </Item>
     </Form>
   );
-};
-
-const formItemLayout = {
-  labelCol: {
-    xs: { span: 24 },
-    sm: { span: 6 },
-  },
-  wrapperCol: {
-    xs: { span: 24 },
-    sm: { span: 14 },
-  },
-};
-
-const formSchema = z.object({
-  token: z.string().uuid(), //uuid
-  title: z.string(),
-  description: z.string(),
-  tags: z.array(z.string()),
-  budgetFrom: z.number().nonnegative(),
-  budgetTo: z.number().nonnegative(),
-  deadlineDays: z.number().positive(),
-  reminds: z.number().nonnegative(),
-  allAutoResponses: z.boolean().optional(),
-  freelancers: z.number().positive(),
-});
-
-const formFields: { [key in keyof Required<SubmittedForm>]: key } = {
-  token: "token",
-  title: "title",
-  description: "description",
-  tags: "tags",
-  budgetFrom: "budgetFrom",
-  budgetTo: "budgetTo",
-  deadlineDays: "deadlineDays",
-  reminds: "reminds",
-  allAutoResponses: "allAutoResponses",
-  freelancers: "freelancers",
 };
