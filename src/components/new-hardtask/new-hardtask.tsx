@@ -28,7 +28,7 @@ export const NewHardtask: FC<NewHardtaskProps> = ({
   publishTask,
   TaskForm,
 }) => {
-  const [messageApi, contextHolder] = message.useMessage({duration: 10});
+  const [messageApi, contextHolder] = message.useMessage({ duration: 10 });
 
   const [formKey, resetForm] = useReset();
   const [published, setPublished] = useState<
@@ -43,12 +43,12 @@ export const NewHardtask: FC<NewHardtaskProps> = ({
         const newPublished = Some({ task, result: published });
         if (published.isRight) {
           messageApi.success("Published successfully");
+          resetForm();
         } else {
           messageApi.error(
             `Failed to publish: ${FailedToPublish.prettyPrint(published.left)}`,
           );
         }
-        resetForm();
         setPublished(newPublished);
       }),
     [publishTask, resetForm, messageApi],
@@ -82,14 +82,14 @@ const SubmissionResult: FC<{
     <>
       {result.isRight ? (
         <Alert
-          style={{width: '100%'}}
+          style={{ width: "100%" }}
           message="Published successfully"
           type="success"
           description={result.right.ok}
         />
       ) : (
         <Alert
-          style={{width: '100%'}}
+          style={{ width: "100%" }}
           message="Failed to publish"
           type="error"
           description={FailedToPublish.prettyPrint(result.left)}
