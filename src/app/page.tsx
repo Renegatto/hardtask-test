@@ -1,5 +1,8 @@
 "use client";
-import { NewHardtask, submittedFormToTask } from "@/components/new-hardtask/new-hardtask";
+import {
+  NewHardtask,
+  submittedFormToTask,
+} from "@/components/new-hardtask/new-hardtask";
 
 import { Layout } from "antd";
 import { Content } from "antd/es/layout/layout";

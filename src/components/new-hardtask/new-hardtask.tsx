@@ -5,7 +5,7 @@ import {
   PublishedTask,
   Task,
 } from "../../service/api/newhardtask";
-import { Flex, message } from "antd";
+import { Alert, Flex, message } from "antd";
 import { Either } from "../../utils";
 import { useReset } from "@/hooks";
 import { Typography } from "antd";
@@ -28,7 +28,7 @@ export const NewHardtask: FC<NewHardtaskProps> = ({
   publishTask,
   TaskForm,
 }) => {
-  const [messageApi, contextHolder] = message.useMessage();
+  const [messageApi, contextHolder] = message.useMessage({duration: 10});
 
   const [formKey, resetForm] = useReset();
   const [published, setPublished] = useState<
@@ -66,7 +66,36 @@ export const NewHardtask: FC<NewHardtaskProps> = ({
         isTransition,
         (published.isRight && published.right.task.token) || undefined,
       )}
+      {published.isRight ? (
+        <SubmissionResult result={published.right.result} />
+      ) : (
+        <></>
+      )}
     </Flex>
+  );
+};
+
+const SubmissionResult: FC<{
+  result: Either<FailedToPublish, PublishedTask>;
+}> = ({ result }) => {
+  return (
+    <>
+      {result.isRight ? (
+        <Alert
+          style={{width: '100%'}}
+          message="Published successfully"
+          type="success"
+          description={result.right.ok}
+        />
+      ) : (
+        <Alert
+          style={{width: '100%'}}
+          message="Failed to publish"
+          type="error"
+          description={FailedToPublish.prettyPrint(result.left)}
+        />
+      )}
+    </>
   );
 };
 
